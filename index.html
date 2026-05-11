@@ -840,13 +840,13 @@ function renderAll() {
   document.getElementById('tmTitle').textContent = `พรุ่งนี้ (${thaiDate(TOMORROW)})`;
   document.getElementById('tomDateLabel').textContent = `📅 พรุ่งนี้ (${thaiDate(TOMORROW)})`;
 
-  // Today stats: only future-type (ready/not_ready)
-  const td = DATA[TODAY] || {r:0, n:0};
-  const tdTotal = (td.r||0) + (td.n||0);
+  // Today stats: ready/not_ready + sent
+  const td = DATA[TODAY] || {r:0, n:0, sent:0};
+  const tdTotal = (td.r||0) + (td.n||0) + (td.sent||0);
   document.getElementById('stat-total').textContent    = tdTotal;
   document.getElementById('stat-ready').textContent    = td.r || 0;
   document.getElementById('stat-notready').textContent = td.n || 0;
-  const pct = tdTotal > 0 ? Math.round((td.r||0)/tdTotal*100) : 100;
+  const pct = (td.r||0)+(td.n||0) > 0 ? Math.round((td.r||0)/((td.r||0)+(td.n||0))*100) : 100;
   document.getElementById('stat-pct').textContent = pct + '%';
 
   const tm = DATA[TOMORROW] || {r:0, n:0};
@@ -1438,9 +1438,13 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
             // ═══════════════════════════════
             // TODAY or FUTURE
             // ═══════════════════════════════
+            // 1. ส่งแล้ว (วันนี้เท่านั้น): shipment >= due
             // 2. พร้อมส่ง: stock >= due
             // 3. ไม่พร้อมส่ง: stock < due
-            if (stockQty >= dueQty) {
+            if (dueDate === TODAY && shipped > 0 && shipped >= dueQty) {
+              dataOut[dueDate].sent += 1;
+              dataOut[dueDate].sent_list.push({ ...entry, shipped });
+            } else if (stockQty >= dueQty) {
               dataOut[dueDate].r += 1;
               dataOut[dueDate].ready.push({ ...entry });
             } else {
