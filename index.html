@@ -140,6 +140,26 @@
   .gs-status { font-size: 10.5px; margin-top: 6px; color: var(--text-dim); min-height: 16px; }
   .gs-help { font-size: 10px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
 
+  /* MODE SWITCHER */
+  .mode-switcher { display:flex; gap:4px; margin-top:4px; }
+  .mode-btn {
+    flex:1; padding:6px 4px; border-radius:8px; border:1px solid var(--border);
+    background:rgba(255,255,255,.5); color:var(--text-muted); font-size:11px; font-weight:600;
+    cursor:pointer; font-family:'Kanit',sans-serif; transition:all .15s; text-align:center;
+  }
+  .mode-btn.active { background:rgba(219,234,254,.85); color:var(--blue); border-color:rgba(37,99,235,.4); }
+  .mode-btn:hover:not(.active) { background:rgba(255,255,255,.8); }
+
+  /* GIST INPUT */
+  .gs-input {
+    width:100%; margin-top:5px; padding:6px 8px; border-radius:7px;
+    border:1px solid rgba(37,99,235,.25); background:rgba(255,255,255,.7);
+    font-size:11px; color:var(--text); font-family:'Kanit','DM Mono',monospace;
+    outline:none; transition:border-color .15s;
+  }
+  .gs-input:focus { border-color:var(--blue); background:rgba(255,255,255,.9); }
+  .gs-input::placeholder { color:var(--text-dim); }
+
   .ar-row { display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid var(--border); }
   .ar-label { font-size:11px; color:var(--text-dim); }
   .ar-select {
@@ -311,6 +331,7 @@
   .badge-green  { background: rgba(5,150,105,.1);  color: var(--green); border: 1px solid rgba(5,150,105,.25); }
   .badge-amber  { background: rgba(217,119,6,.1);  color: var(--amber); border: 1px solid rgba(217,119,6,.25); }
   .badge-blue   { background: rgba(37,99,235,.1);  color: var(--blue); border: 1px solid rgba(37,99,235,.25); }
+  .badge-purple { background: rgba(124,58,237,.1); color: #55ed5f; border: 1px solid rgba(124,58,237,.25); }
 
   /* SHORTAGE BAR */
   .shortage-bar { height:4px; background: rgba(248,113,113,.2); border-radius:3px; overflow:hidden; margin-top:3px; }
@@ -394,30 +415,69 @@
   </div>
 
   <div class="gs-connect">
-    <div class="gs-label">📂 แหล่งข้อมูล (Excel)</div>
-    <div class="file-picker-area" id="filePickerArea" title="คลิกเพื่อเลือกไฟล์ Excel">
-      <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm" onchange="onFileSelected(this)">
-      <div class="file-picker-icon">📁</div>
-      <div class="file-picker-text">คลิกหรือลากไฟล์มาวาง</div>
-      <div class="file-picker-hint">.xlsx / .xls / .xlsm</div>
+
+    <!-- MODE SWITCHER -->
+    <div class="mode-switcher" id="modeSwitcher">
+      <button class="mode-btn active" id="modeXBtn" onclick="setMode('X')">🖥 เครื่อง X <span style="font-size:9px;opacity:.6">(มีไฟล์)</span></button>
+      <button class="mode-btn" id="modeYBtn" onclick="setMode('Y')">📺 เครื่อง Y <span style="font-size:9px;opacity:.6">(แสดงผล)</span></button>
     </div>
-    <div id="srcFile">—</div>
-    <button class="gs-btn" id="gsBtn" onclick="fetchData()">🔄 โหลดข้อมูลใหม่</button>
-    <div class="gs-status" id="gsStatus">📂 กรุณาเลือกไฟล์ Excel เพื่อโหลดข้อมูล</div>
-    <div class="ar-row">
-      <span class="ar-label">⏱ Auto-refresh</span>
-      <select class="ar-select" id="arSelect" onchange="setAutoRefresh(this.value)">
-        <option value="0">ปิด</option>
-        <option value="10">10 วินาที</option>
-        <option value="30">30 วินาที</option>
-        <option value="60">1 นาที</option>
-        <option value="300">5 นาที</option>
-        <option value="900">15 นาที</option>
-        <option value="1800">30 นาที</option>
-      </select>
+
+    <!-- GIST CONFIG -->
+    <div style="margin-top:10px">
+      <div class="gs-label" style="margin-bottom:4px">🔗 GitHub Gist Config</div>
+      <input class="gs-input" id="gistId"    placeholder="Gist ID  (เช่น abc123def456)" title="วางตรงนี้">
+      <input class="gs-input" id="gistToken" placeholder="GitHub Token (ghp_...)" type="password" title="วางตรงนี้">
+      <button class="gs-btn" style="margin-top:4px" onclick="saveGistConfig()">💾 บันทึก Config</button>
+      <div class="gs-status" id="cfgStatus" style="min-height:14px"></div>
     </div>
-    <div class="ar-countdown" id="arCountdown"></div>
-    <div class="gs-help">📂 เลือกไฟล์ Excel แล้วข้อมูลจะโหลดทันที</div>
+
+    <!-- เครื่อง X: file picker -->
+    <div id="panelX">
+      <div class="gs-label" style="margin-top:10px">📂 แหล่งข้อมูล (Excel)</div>
+      <div class="file-picker-area" id="filePickerArea" title="คลิกเพื่อเลือกไฟล์ Excel">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm" onchange="onFileSelected(this)">
+        <div class="file-picker-icon">📁</div>
+        <div class="file-picker-text">คลิกหรือลากไฟล์มาวาง</div>
+        <div class="file-picker-hint">.xlsx / .xls / .xlsm</div>
+      </div>
+      <div id="srcFile">—</div>
+      <button class="gs-btn" id="gsBtn" onclick="fetchData()">🔄 โหลดข้อมูลใหม่</button>
+      <div class="gs-status" id="gsStatus">📂 กรุณาเลือกไฟล์ Excel เพื่อโหลดข้อมูล</div>
+      <div class="ar-row">
+        <span class="ar-label">⏱ Auto-refresh</span>
+        <select class="ar-select" id="arSelect" onchange="setAutoRefresh(this.value)">
+          <option value="0">ปิด</option>
+          <option value="10">10 วินาที</option>
+          <option value="30">30 วินาที</option>
+          <option value="60">1 นาที</option>
+          <option value="300">5 นาที</option>
+          <option value="900">15 นาที</option>
+          <option value="1800">30 นาที</option>
+        </select>
+      </div>
+      <div class="ar-countdown" id="arCountdown"></div>
+      <div class="gs-help">📂 เลือกไฟล์ → ข้อมูลโหลด & ส่งขึ้น Gist อัตโนมัติ</div>
+    </div>
+
+    <!-- เครื่อง Y: viewer only -->
+    <div id="panelY" style="display:none">
+      <div style="margin-top:10px">
+        <div class="gs-label">📺 โหมดแสดงผล</div>
+        <div class="gs-help" style="margin-top:4px">รับข้อมูลจาก Gist อัตโนมัติ ไม่ต้องโหลดไฟล์</div>
+        <div class="gs-status" id="yStatus" style="margin-top:6px;min-height:14px">⏳ รอรับข้อมูล...</div>
+        <div class="ar-row" style="margin-top:8px">
+          <span class="ar-label">⏱ Sync ทุก</span>
+          <select class="ar-select" id="ySyncSelect" onchange="setYSync(this.value)">
+            <option value="15">15 วินาที</option>
+            <option value="30" selected>30 วินาที</option>
+            <option value="60">1 นาที</option>
+            <option value="300">5 นาที</option>
+          </select>
+        </div>
+        <div class="ar-countdown" id="ySyncCountdown" style="margin-top:4px"></div>
+      </div>
+    </div>
+
   </div>
 
   <div class="sidebar-bottom">
@@ -494,8 +554,9 @@
           <div class="legend">
             <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>พร้อมส่ง</div>
             <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>ไม่พร้อมส่ง</div>
-            <div class="legend-item"><div class="legend-dot" style="background:rgba(248,113,113,0.75);border:1.5px solid #f87171"></div>ค้างส่ง (overdue)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(248,113,113,0.75);border:1.5px solid #f87171"></div>ค้างส่ง</div>
             <div class="legend-item"><div class="legend-dot" style="background:rgba(234,179,8,0.45);border:1.5px solid #eab308"></div>ส่งล่าช้า</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(127, 237, 58, 0.5);border:1.5px solid #55ed5f"></div>ส่งแล้ว</div>
           </div>
         </div>
         <div class="card-body">
@@ -627,7 +688,7 @@
                 <th style="width:90px">วันที่</th>
                 <th style="width:70px">Due</th>
                 <th style="width:70px">Stock</th>
-                <th style="width:110px">ขาด (Balance PO) ▼</th>
+                <th style="width:110px">ขาด ▼</th>
                 <th style="width:80px">สถานะ</th>
               </tr>
             </thead>
@@ -672,11 +733,8 @@ let _lastHash = '';
 let _dataLoaded = false;
 let _tomViewMode = 'name';
 
-// ✅ KEY FIX: เก็บ Uint8Array แทน ArrayBuffer
-// ArrayBuffer จะถูก "detach" (transfer ownership) เมื่อ XLSX.read() ใช้งาน
-// แต่ Uint8Array จะ copy bytes ออกมาก่อน ทำให้ buffer เดิมยังคงใช้งานได้
 let _lastFileName = null;
-let _savedBytes = null;   // ← เก็บเป็น Uint8Array ซึ่งไม่ถูก detach
+let _savedBytes = null;
 
 const TODAY = new Date().toISOString().slice(0,10);
 
@@ -782,6 +840,7 @@ function renderAll() {
   document.getElementById('tmTitle').textContent = `พรุ่งนี้ (${thaiDate(TOMORROW)})`;
   document.getElementById('tomDateLabel').textContent = `📅 พรุ่งนี้ (${thaiDate(TOMORROW)})`;
 
+  // Today stats: only future-type (ready/not_ready)
   const td = DATA[TODAY] || {r:0, n:0};
   const tdTotal = (td.r||0) + (td.n||0);
   document.getElementById('stat-total').textContent    = tdTotal;
@@ -852,11 +911,11 @@ function initBarChart() {
       const { ctx, scales: { x, y } } = chart;
       ctx.save();
       allDates.forEach((d, i) => {
-        const day = DATA[d] || {r:0, n:0, ov:0, l:0};
+        const day = DATA[d] || {r:0, n:0, ov:0, l:0, sent:0};
         const rn = (day.r||0) + (day.n||0);
         if (!rn) return;
         const pct = Math.round((day.r||0)/rn*100);
-        const stackTotal = rn + (day.ov||0) + (day.l||0);
+        const stackTotal = rn + (day.ov||0) + (day.l||0) + (day.sent||0);
         const xPos = x.getPixelForValue(i);
         const yPos = y.getPixelForValue(stackTotal) - 6;
         ctx.font = 'bold 9.5px Kanit, sans-serif';
@@ -877,11 +936,10 @@ function initBarChart() {
       labels,
       datasets: [
         { label:'พร้อมส่ง',   data:allDates.map(d=>DATA[d]?.r||0), backgroundColor:allDates.map((d,i)=>i===todayIdx?'#059669':'#10b981'), borderRadius:4, borderSkipped:false },
-        { label:'ไม่พร้อมส่ง', data:allDates.map(d=>DATA[d]?.n||0), backgroundColor:allDates.map((d,i)=>d<TODAY?'#eab308':i===todayIdx?'#dc2626':'#ef4444'), borderRadius:4, borderSkipped:false },
-        { label:'ค้างส่ง (overdue)', data:allDates.map(d=>DATA[d]?.ov||0),
-          backgroundColor:'rgba(248,113,113,0.75)', borderColor:'#f87171', borderWidth:1.5, borderRadius:4, borderSkipped:false },
-        { label:'ส่งล่าช้า',   data:allDates.map(d=>DATA[d]?.l||0),
-          backgroundColor:'rgba(234,179,8,0.38)', borderColor:'rgba(234,179,8,0.75)', borderWidth:1.5, borderRadius:4, borderSkipped:false }
+        { label:'ไม่พร้อมส่ง', data:allDates.map(d=>DATA[d]?.n||0), backgroundColor:allDates.map((d,i)=>i===todayIdx?'#dc2626':'#ef4444'), borderRadius:4, borderSkipped:false },
+        { label:'ค้างส่ง',    data:allDates.map(d=>DATA[d]?.ov||0), backgroundColor:'rgba(248,113,113,0.75)', borderColor:'#f87171', borderWidth:1.5, borderRadius:4, borderSkipped:false },
+        { label:'ส่งล่าช้า',   data:allDates.map(d=>DATA[d]?.l||0),  backgroundColor:'rgba(234,179,8,0.38)', borderColor:'rgba(234,179,8,0.75)', borderWidth:1.5, borderRadius:4, borderSkipped:false },
+        { label:'ส่งแล้ว',    data:allDates.map(d=>DATA[d]?.sent||0), backgroundColor:'rgba(127, 237, 58, 0.5)', borderColor:'#55ed5f', borderWidth:1.5, borderRadius:4, borderSkipped:false }
       ]
     },
     options: {
@@ -894,12 +952,14 @@ function initBarChart() {
           label: ctx => ` ${ctx.dataset.label}: ${ctx.raw} รายการ`,
           afterBody: items => {
             const d = allDates[items[0].dataIndex];
-            const day = DATA[d] || {r:0, n:0, l:0};
+            const day = DATA[d] || {};
             const total = (day.r||0)+(day.n||0);
             const pct = total ? Math.round((day.r||0)/total*100) : 0;
-            const lateLine = (day.l||0) > 0 ? `⏰ ส่งล่าช้า: ${day.l} รายการ` : '';
-            const ovLine  = (day.ov||0) > 0 ? `🔴 ค้างส่ง: ${day.ov} รายการ` : '';
-            return [`รวม: ${total} รายการ`, `พร้อม: ${pct}%`, ovLine, lateLine].filter(Boolean);
+            const lines = [`รวมแผน: ${total} รายการ`, `พร้อม: ${pct}%`];
+            if ((day.sent||0) > 0) lines.push(`✅ ส่งแล้ว: ${day.sent}`);
+            if ((day.ov||0) > 0)   lines.push(`🔴 ค้างส่ง: ${day.ov}`);
+            if ((day.l||0) > 0)    lines.push(`⏰ ล่าช้า: ${day.l}`);
+            return lines;
           }
         }}
       },
@@ -915,18 +975,25 @@ function initBarChart() {
 
 function openDayModal(dateKey, tab) {
   if (!_dataLoaded) return;
-  const d = DATA[dateKey] || {ready:[], not_ready:[], late:[]};
+  const d = DATA[dateKey] || {ready:[], not_ready:[], late:[], overdue:[], sent:[]};
   const total = (d.r||0)+(d.n||0);
   document.getElementById('modalTitle').textContent    = `รายละเอียด ${thaiDate(dateKey)}`;
   document.getElementById('modalSubtitle').textContent =
-    `รวม ${total} รายการ | พร้อม ${d.r||0} | ไม่พร้อมส่ง ${d.n||0}${(d.ov||0)>0?' | 🔴 ค้างส่ง '+(d.ov||0):''}${(d.l||0)>0?' | ⏰ ส่งล่าช้า '+(d.l||0):''}`;
-  document.getElementById('modalTabs').innerHTML = `
-    <button class="modal-tab ${tab==='all'?'active':''}" onclick="switchTab('all')">ทั้งหมด (${total})</button>
-    <button class="modal-tab ${tab==='ready'?'active':''}" onclick="switchTab('ready')">✅ พร้อมส่ง (${d.r||0})</button>
-    <button class="modal-tab ${tab==='not_ready'?'active':''}" onclick="switchTab('not_ready')">❌ ไม่พร้อมส่ง (${d.n||0})</button>
-    ${(d.ov||0)>0?`<button class="modal-tab ${tab==='overdue'?'active':''}" onclick="switchTab('overdue')">🔴 ค้างส่ง (${d.ov||0})</button>`:''}
-    ${(d.l||0)>0?`<button class="modal-tab ${tab==='late'?'active':''}" onclick="switchTab('late')">⏰ ส่งล่าช้า (${d.l||0})</button>`:''}
-  `;
+    `รวม ${total} รายการ | พร้อม ${d.r||0} | ไม่พร้อมส่ง ${d.n||0}` +
+    ((d.ov||0)>0 ? ` | 🔴 ค้างส่ง ${d.ov}` : '') +
+    ((d.l||0)>0  ? ` | ⏰ ล่าช้า ${d.l}` : '') +
+    ((d.sent||0)>0 ? ` | ✅ ส่งแล้ว ${d.sent}` : '');
+
+  const tabs = [
+    `<button class="modal-tab ${tab==='all'?'active':''}" onclick="switchTab('all')">ทั้งหมด (${total})</button>`,
+    `<button class="modal-tab ${tab==='ready'?'active':''}" onclick="switchTab('ready')">✅ พร้อมส่ง (${d.r||0})</button>`,
+    `<button class="modal-tab ${tab==='not_ready'?'active':''}" onclick="switchTab('not_ready')">❌ ไม่พร้อมส่ง (${d.n||0})</button>`,
+  ];
+  if ((d.ov||0)>0)   tabs.push(`<button class="modal-tab ${tab==='overdue'?'active':''}" onclick="switchTab('overdue')">🔴 ค้างส่ง (${d.ov||0})</button>`);
+  if ((d.l||0)>0)    tabs.push(`<button class="modal-tab ${tab==='late'?'active':''}" onclick="switchTab('late')">⏰ ส่งล่าช้า (${d.l||0})</button>`);
+  if ((d.sent||0)>0) tabs.push(`<button class="modal-tab ${tab==='sent'?'active':''}" onclick="switchTab('sent')">📦 ส่งแล้ว (${d.sent||0})</button>`);
+  document.getElementById('modalTabs').innerHTML = tabs.join('');
+
   window._mDate = dateKey;
   renderModalTable(tab);
   document.getElementById('modalOverlay').classList.add('open');
@@ -935,80 +1002,76 @@ function openDayModal(dateKey, tab) {
 function switchTab(tab) {
   document.querySelectorAll('#modalTabs .modal-tab').forEach(b=>{
     const t = b.textContent;
-    const isActive =
+    b.classList.toggle('active',
       (tab==='all'       && t.includes('ทั้งหมด'))  ||
-      (tab==='ready'     && t.includes('✅'))        ||
-      (tab==='not_ready' && t.includes('❌'))        ||
-      (tab==='overdue'   && t.includes('🔴'))        ||
-      (tab==='late'      && t.includes('⏰'));
-    b.classList.toggle('active', isActive);
+      (tab==='ready'     && t.includes('✅ พร้อมส่ง')) ||
+      (tab==='not_ready' && t.includes('❌'))         ||
+      (tab==='overdue'   && t.includes('🔴'))         ||
+      (tab==='late'      && t.includes('⏰'))         ||
+      (tab==='sent'      && t.includes('📦'))
+    );
   });
   renderModalTable(tab);
 }
 
-function shortageCell(sh) {
-  if (sh === undefined || sh === null) return '<span style="color:var(--text-muted)">—</span>';
-  if (sh <= 0) return '<span class="badge badge-green">Stock พอ</span>';
-  return `<div style="font-weight:700;color:var(--red);font-size:13px">${fmt(sh)}</div>
-          <div class="shortage-bar"><div class="shortage-fill" style="width:100%"></div></div>`;
-}
-
 function renderModalTable(tab) {
-  const d = DATA[window._mDate] || {ready:[], not_ready:[], late:[], overdue:[]};
+  const d = DATA[window._mDate] || {ready:[], not_ready:[], late:[], overdue:[], sent:[]};
 
-  if (tab === 'overdue') {
-    const rows = (d.overdue || []).sort((a,b) => (a.origDue||a.dk).localeCompare(b.origDue||b.dk));
+  if (tab === 'sent') {
+    const rows = d.sent_list || [];
     document.getElementById('modalThead').innerHTML = `<tr>
       <th style="width:38px">#</th><th>ลูกค้า</th><th style="width:130px">Inventory ID</th>
-      <th>รายละเอียด</th>
-      <th style="width:115px">Due เดิม</th>
-      <th style="width:80px">Stock</th>
-      <th style="width:120px">ขาด (Balance PO)</th>
-      <th style="width:80px">สถานะ</th>
+      <th>รายละเอียด</th><th style="width:80px">Due</th><th style="width:90px">Shipment</th><th style="width:80px">สถานะ</th>
     </tr>`;
-    document.getElementById('modalBody').innerHTML = rows.map((r, idx) => {
-      const shortage = r.sh || 0;
-      const origDue = r.origDue || r.dk;
-      return `<tr>
-        <td style="color:var(--text-dim);font-size:11px;font-weight:600">${idx+1}</td>
-        <td style="font-size:12.5px;font-weight:600;color:var(--text)">${r.c}</td>
-        <td class="inv-id">${r.inv || '—'}</td>
-        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
-        <td><span style="color:#f87171;font-weight:700">${thaiDate(origDue)}</span></td>
-        <td style="font-weight:600;color:${(r.stock||0)>0?'var(--green)':'var(--text-muted)'}">${fmt(r.stock)}</td>
-        <td>${shortageCell(shortage)}</td>
-        <td><span class="badge badge-red">🔴 ค้างส่ง</span></td>
-      </tr>`;
-    }).join('') || `<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการค้างส่ง 🎉</td></tr>`;
+    document.getElementById('modalBody').innerHTML = rows.map((r, idx) => `<tr>
+      <td style="color:var(--text-muted);font-size:11px;font-weight:600">${idx+1}</td>
+      <td style="font-size:12.5px;font-weight:600">${r.c}</td>
+      <td class="inv-id">${r.inv||'—'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
+      <td style="font-weight:600">${fmt(r.due)}</td>
+      <td style="font-weight:700;color:var(--green)">${fmt(r.shipped)}</td>
+      <td><span class="badge badge-purple">📦 ส่งแล้ว</span></td>
+    </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการ</td></tr>`;
+    return;
+  }
+
+  if (tab === 'overdue') {
+    const rows = (d.overdue || []);
+    document.getElementById('modalThead').innerHTML = `<tr>
+      <th style="width:38px">#</th><th>ลูกค้า</th><th style="width:130px">Inventory ID</th>
+      <th>รายละเอียด</th><th style="width:115px">Due เดิม</th>
+      <th style="width:80px">Stock</th><th style="width:120px">Balance PO</th><th style="width:80px">สถานะ</th>
+    </tr>`;
+    document.getElementById('modalBody').innerHTML = rows.map((r, idx) => `<tr>
+      <td style="color:var(--text-dim);font-size:11px;font-weight:600">${idx+1}</td>
+      <td style="font-size:12.5px;font-weight:600">${r.c}</td>
+      <td class="inv-id">${r.inv||'—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
+      <td><span style="color:#f87171;font-weight:700">${thaiDate(r.origDue||r.dk)}</span></td>
+      <td style="font-weight:600;color:${(r.stock||0)>0?'var(--green)':'var(--text-muted)'}">${fmt(r.stock)}</td>
+      <td style="font-weight:700;color:var(--red)">${fmt(r.balPO)}</td>
+      <td><span class="badge badge-red">🔴 ค้างส่ง</span></td>
+    </tr>`).join('') || `<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการค้างส่ง 🎉</td></tr>`;
     return;
   }
 
   if (tab === 'late') {
-    const rows = d.late || [];
+    const rows = d.late_list || [];
     document.getElementById('modalThead').innerHTML = `<tr>
       <th style="width:38px">#</th><th>ลูกค้า</th><th style="width:130px">Inventory ID</th>
-      <th>รายละเอียด</th>
-      <th style="width:110px">Due เดิม</th>
-      <th style="width:80px">Shipment</th>
-      <th style="width:120px">ขาด (Balance PO)</th>
-      <th style="width:100px">สถานะ</th>
+      <th>รายละเอียด</th><th style="width:110px">Due เดิม</th>
+      <th style="width:100px">วันที่ส่ง</th><th style="width:90px">Shipment</th><th style="width:100px">สถานะ</th>
     </tr>`;
-    document.getElementById('modalBody').innerHTML = rows.map((r, idx) => {
-      const origDue = r.origDue || r.dk;
-      const sh = r.sh || 0;
-      return `<tr>
-        <td style="color:var(--text-muted);font-size:11px;font-weight:600">${idx+1}</td>
-        <td style="font-size:12.5px;font-weight:600;color:var(--text)">${r.c}</td>
-        <td class="inv-id">${r.inv || '—'}</td>
-        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
-        <td style="font-weight:600;color:var(--amber)">${thaiDate(origDue)}</td>
-        <td style="font-weight:700;color:var(--text)">${fmt(r.shipped || 0)}</td>
-        <td>${sh > 0
-          ? `<div style="font-weight:700;color:var(--red);font-size:13px">${fmt(sh)}</div><div class="shortage-bar"><div class="shortage-fill"></div></div>`
-          : `<span class="badge badge-green">ส่งครบ</span>`}</td>
-        <td><span class="badge badge-amber">⏰ ล่าช้า</span></td>
-      </tr>`;
-    }).join('') || `<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการส่งล่าช้า 🎉</td></tr>`;
+    document.getElementById('modalBody').innerHTML = rows.map((r, idx) => `<tr>
+      <td style="color:var(--text-muted);font-size:11px;font-weight:600">${idx+1}</td>
+      <td style="font-size:12.5px;font-weight:600">${r.c}</td>
+      <td class="inv-id">${r.inv||'—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
+      <td style="font-weight:600;color:var(--amber)">${thaiDate(r.origDue)}</td>
+      <td style="font-weight:600;color:var(--text)">${thaiDate(r.shipDate)}</td>
+      <td style="font-weight:700;color:var(--green)">${fmt(r.shipped)}</td>
+      <td><span class="badge badge-amber">⏰ ล่าช้า</span></td>
+    </tr>`).join('') || `<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการส่งล่าช้า 🎉</td></tr>`;
     return;
   }
 
@@ -1017,24 +1080,25 @@ function renderModalTable(tab) {
   else if (tab==='ready') rows = (d.ready||[]).map(r=>({...r,status:'ready'}));
   else                    rows = (d.not_ready||[]).map(r=>({...r,status:'not_ready'}));
 
-  const showShortage = tab !== 'ready';
   document.getElementById('modalThead').innerHTML = `<tr>
     <th style="width:38px">#</th><th>ลูกค้า</th><th style="width:130px">Inventory ID</th>
     <th>รายละเอียด</th><th style="width:65px">Due</th><th style="width:70px">Stock</th>
-    ${showShortage ? '<th style="width:120px">ขาด (Balance PO)</th>' : ''}
+    <th style="width:120px">ขาด</th>
     <th style="width:78px">สถานะ</th>
   </tr>`;
   document.getElementById('modalBody').innerHTML = rows.map((r, idx) => {
     const sh = r.status === 'not_ready' ? (r.sh || 0) : 0;
     return `<tr>
       <td style="color:var(--text-muted);font-size:11px;font-weight:600">${idx+1}</td>
-      <td style="font-size:12.5px;font-weight:600;color:var(--text)">${r.c}</td>
-      <td class="inv-id">${r.inv || '—'}</td>
+      <td style="font-size:12.5px;font-weight:600">${r.c}</td>
+      <td class="inv-id">${r.inv||'—'}</td>
       <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
       <td>${fmt(r.due)}</td>
       <td style="font-weight:600;color:${(r.stock||0)>0?'var(--green)':'var(--text-muted)'}">${fmt(r.stock)}</td>
-      ${showShortage ? `<td>${shortageCell(r.status==='not_ready' ? sh : null)}</td>` : ''}
-      <td>${r.status==='ready'||sh===0?'<span class="badge badge-green">✅ พร้อมส่ง</span>':'<span class="badge badge-red">❌ ไม่พร้อมส่ง</span>'}</td>
+      <td>${r.status==='not_ready' && sh>0
+        ? `<div style="font-weight:700;color:var(--red);font-size:13px">${fmt(sh)}</div><div class="shortage-bar"><div class="shortage-fill" style="width:100%"></div></div>`
+        : `<span class="badge badge-green">Stock พอ</span>`}</td>
+      <td>${r.status==='ready'?'<span class="badge badge-green">✅ พร้อมส่ง</span>':'<span class="badge badge-red">❌ ไม่พร้อมส่ง</span>'}</td>
     </tr>`;
   }).join('') || `<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการ</td></tr>`;
 }
@@ -1057,7 +1121,7 @@ function renderTable(filter) {
 
   let rows = [];
   dates.forEach(dk => (DATA[dk]?.not_ready||[]).forEach(item => rows.push({...item, dk})));
-  rows.sort((a, b) => (a.sh || 0) - (b.sh || 0));
+  rows.sort((a, b) => (b.sh || 0) - (a.sh || 0));
 
   const maxSh = Math.max(...rows.map(x => x.sh||0), 1);
 
@@ -1069,7 +1133,7 @@ function renderTable(filter) {
     const dateColor = r.dk===TODAY?'var(--blue)':r.dk<TODAY?'var(--text-dim)':'var(--amber)';
     return `<tr>
       <td style="color:var(--text-muted);font-size:11px;font-weight:600">${idx+1}</td>
-      <td style="font-size:12.5px;font-weight:600;color:var(--text)">${r.c}</td>
+      <td style="font-size:12.5px;font-weight:600">${r.c}</td>
       <td class="inv-id">${r.inv||'—'}</td>
       <td style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
       <td><span style="font-size:11px;font-weight:600;color:${dateColor}">${dateLabel}</span></td>
@@ -1081,7 +1145,7 @@ function renderTable(filter) {
              <div class="shortage-bar"><div class="shortage-fill" style="width:${pct}%"></div></div>`
           : `<span class="badge badge-green">Stock พอ</span>`}
       </td>
-      <td>${sh===0?'<span class="badge badge-green">✅ พร้อมส่ง</span>':'<span class="badge badge-red">❌ ไม่พร้อมส่ง</span>'}</td>
+      <td><span class="badge badge-red">❌ ไม่พร้อมส่ง</span></td>
     </tr>`;
   }).join('') || `<tr><td colspan="9" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการที่ยังไม่พร้อม 🎉</td></tr>`;
 }
@@ -1089,32 +1153,19 @@ function renderTable(filter) {
 function toggleSidebar() { document.body.classList.toggle('sidebar-hidden'); }
 
 // =====================================================================
-// ✅ FIXED FILE HANDLING
-//
-// ROOT CAUSE: XLSX.read(arrayBuffer, {type:'array'}) ทำการ "transfer"
-//   (detach) ArrayBuffer ออกจาก JS ทำให้ buffer เดิมใช้งานต่อไม่ได้
-//   แม้จะ .slice(0) ก่อนส่ง ก็ยังเป็น view ของ buffer เดิมที่ detach แล้ว
-//
-// FIX: เก็บข้อมูลเป็น Uint8Array (_savedBytes) ซึ่งเป็น typed array view
-//   ที่ไม่ถูก detach — แล้วสร้าง ArrayBuffer ใหม่ทุกครั้งที่ต้องการ parse
-//   โดยใช้ _savedBytes.slice() ซึ่งจะ copy bytes ออกมาเป็น buffer ใหม่เสมอ
+// FILE HANDLING
 // =====================================================================
-
 async function onFileSelected(input) {
   const file = input.files[0];
   if (!file) return;
-
   const status = document.getElementById('gsStatus');
   status.style.color = 'rgba(10,20,50,.45)';
   status.textContent = `⏳ กำลังอ่านไฟล์ "${file.name}"...`;
-
   try {
     const buffer = await file.arrayBuffer();
-    // ✅ แปลงเป็น Uint8Array ทันที — typed array นี้จะไม่ถูก detach
     _savedBytes   = new Uint8Array(buffer);
     _lastFileName = file.name;
     document.getElementById('srcFile').textContent = file.name;
-    // ✅ สร้าง fresh ArrayBuffer สำหรับ parse ครั้งแรก
     await parseExcelFileFromBytes(_savedBytes, _lastFileName);
   } catch (e) {
     status.textContent = `❌ อ่านไฟล์ไม่ได้: ${e.message}`;
@@ -1124,7 +1175,6 @@ async function onFileSelected(input) {
 
 async function fetchData() {
   if (_savedBytes) {
-    // ✅ สร้าง ArrayBuffer ใหม่จาก Uint8Array ทุกครั้ง → ไม่มีปัญหา detach
     await parseExcelFileFromBytes(_savedBytes, _lastFileName || 'file.xlsx');
   } else {
     const status = document.getElementById('gsStatus');
@@ -1133,8 +1183,23 @@ async function fetchData() {
   }
 }
 
-// ===================== EXCEL PARSING =====================
-// รับ Uint8Array แทน ArrayBuffer เพื่อป้องกัน detach
+// =====================================================================
+// EXCEL PARSING — NEW LOGIC
+//
+// แต่ละ item group ประกอบด้วย:
+//   Due row        — ปริมาณที่แผนส่งในวันนั้น
+//   Shipment row   — ปริมาณที่ส่งจริงในวันนั้น
+//   Balance PO row — สะสม (PO เรียกงาน - Shipment) ค่าลบ = ยังค้างอยู่
+//   Update Stock   — Inventory ID (col index 4)
+//   FG Stock row   — stock ปัจจุบัน (ดึงจาก Inv Balance sheet แทน)
+//
+// สถานะ (ใหม่):
+//  1. ส่งแล้ว     — อดีตเท่านั้น: due > 0 AND shipment == due ในวันเดียวกัน
+//  2. พร้อมส่ง    — อนาคต: stock >= due
+//  3. ไม่พร้อมส่ง — อนาคต: stock < due
+//  4. ค้างส่ง     — Balance PO < 0 → ดึงรายการมาแสดงถึงวันพรุ่งนี้
+//  5. ล่าช้า      — วันก่อน BPO < 0 แล้วมี shipment คนละวัน ทำให้ BPO → 0
+// =====================================================================
 async function parseExcelFileFromBytes(uint8Array, fileName) {
   const btn    = document.getElementById('gsBtn');
   const status = document.getElementById('gsStatus');
@@ -1143,19 +1208,18 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
   status.textContent = '⏳ กำลังประมวลผลข้อมูล...';
 
   try {
-    // ✅ ส่ง Uint8Array เข้า XLSX.read() โดยตรง (type:'array' รับ Uint8Array ได้)
-    // XLSX จะอ่าน bytes แต่ไม่ detach Uint8Array ต้นฉบับ
     const workbook = XLSX.read(uint8Array, { type: 'array', cellDates: false });
 
-    // ── 1. Build stock map from "Inv Balance" sheet ──
-    const invMap = {};
-    const invSheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('inv balance') || n.toLowerCase().includes('inv_balance'));
+    // ── 1. Build stock map from Inv Balance sheet ──
+    const invMap = {}; // invId → available qty
+    const invSheetName = workbook.SheetNames.find(n =>
+      n.toLowerCase().includes('inv balance') || n.toLowerCase().includes('inv_balance'));
     if (invSheetName) {
-      const invRaw = XLSX.utils.sheet_to_json(workbook.Sheets[invSheetName], { header: 1, defval: null, raw: true });
+      const invRaw = XLSX.utils.sheet_to_json(workbook.Sheets[invSheetName],
+        { header: 1, defval: null, raw: true });
       let hRow = -1, colInvId = -1, colAvail = -1;
       for (let r = 0; r < Math.min(invRaw.length, 10); r++) {
-        const row = invRaw[r];
-        if (!row) continue;
+        const row = invRaw[r]; if (!row) continue;
         for (let c = 0; c < row.length; c++) {
           const v = row[c] ? String(row[c]).trim().toLowerCase() : '';
           if (v === 'inventory id') { colInvId = c; hRow = r; }
@@ -1165,8 +1229,7 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
       }
       if (hRow >= 0 && colInvId >= 0 && colAvail >= 0) {
         for (let r = hRow + 1; r < invRaw.length; r++) {
-          const row = invRaw[r];
-          if (!row) continue;
+          const row = invRaw[r]; if (!row) continue;
           const id  = row[colInvId] ? String(row[colInvId]).trim() : '';
           const qty = parseFloat(row[colAvail]);
           if (id && !isNaN(qty)) invMap[id] = qty;
@@ -1174,18 +1237,25 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
       }
     }
 
-    // ── 2. Read "SAHA's Plan" sheet ──
-    const sheetName = workbook.SheetNames.find(n => n.includes("SAHA") || n.includes("Plan")) || workbook.SheetNames[0];
-    const ws = workbook.Sheets[sheetName];
+    // ── 2. Read SAHA's Plan sheet ──
+    const sheetName = workbook.SheetNames.find(n => n.includes("SAHA") || n.includes("Plan"))
+      || workbook.SheetNames[0];
+    const ws  = workbook.Sheets[sheetName];
     const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
 
-    // ── 3. Find date columns (row index 3) ──
+    // ── 3. Map date columns from row index 5 (row 6 in Excel, 0-indexed=5) ──
+    // Row 6 in Excel = index 5 in 0-based array
     const EXCEL_EPOCH = new Date(1899, 11, 30).getTime();
-    const dateRow = raw[3] || [];
+    const dateRow = raw[5] || [];
+
+    // dateCols: colIndex → "YYYY-MM-DD"
     const dateCols = {};
     for (let c = 0; c < dateRow.length; c++) {
       const v = dateRow[c];
-      if (typeof v === 'number' && v > 40000 && v < 70000) {
+      if (v instanceof Date) {
+        const yr = v.getFullYear(), mo = String(v.getMonth()+1).padStart(2,'0'), dy = String(v.getDate()).padStart(2,'0');
+        dateCols[c] = `${yr}-${mo}-${dy}`;
+      } else if (typeof v === 'number' && v > 40000 && v < 70000) {
         const d = new Date(EXCEL_EPOCH + v * 86400000);
         const yr = d.getFullYear(), mo = String(d.getMonth()+1).padStart(2,'0'), dy = String(d.getDate()).padStart(2,'0');
         dateCols[c] = `${yr}-${mo}-${dy}`;
@@ -1195,246 +1265,222 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
       throw new Error('ไม่พบคอลัมน์วันที่ในไฟล์ กรุณาตรวจสอบชีต "SAHA\'s Plan"');
     }
 
-    const safeNum = v => { const f = parseFloat(v); return isNaN(f) ? 0 : f; };
-    const allDateStrs = Object.values(dateCols).sort();
-    const dataOut = {};
-    allDateStrs.forEach(d => { dataOut[d] = { r:0, n:0, ov:0, l:0, ready:[], not_ready:[], overdue:[], late:[] }; });
+    // sorted date col entries: [[colIdx, dateStr], ...]
+    const sortedDateCols = Object.entries(dateCols)
+      .map(([c, ds]) => [parseInt(c), ds])
+      .sort((a, b) => a[1].localeCompare(b[1]));
 
-    const todayStr    = TODAY;
-    const tomorrowStr = TOMORROW;
+    const allDateStrs = sortedDateCols.map(([c, ds]) => ds);
+    const safeNum = v => { const f = parseFloat(v); return isNaN(f) ? 0 : f; };
+
+    // Initialize dataOut for all dates
+    const dataOut = {};
+    allDateStrs.forEach(d => {
+      dataOut[d] = {
+        r: 0, n: 0, ov: 0, l: 0, sent: 0,
+        ready: [], not_ready: [], overdue: [], late_list: [], sent_list: []
+      };
+    });
+
     const nrows = raw.length;
 
-    const sortedDateColEntries = Object.keys(dateCols)
-      .map(c => [parseInt(c), dateCols[c]])
-      .sort((a,b) => a[1].localeCompare(b[1]));
+    // ── 4. Parse item groups ──
+    // Each group starts with a row where col[0] (ITEM) is not null and col[9] (label) === 'Due'
+    // Within a group (until next ITEM row), sub-rows have col[9] labels:
+    //   'PO เรียกงาน', 'Prod. Act', 'Update Stock', 'Shipment', 'Balance PO', 'FG Stock'
+    // INV ID is in col[4] of the 'Update Stock' row
 
-    const getBalPO = (balPORow, dstr) => {
-      if (!balPORow) return null;
-      const colEntry = sortedDateColEntries.find(([c, ds]) => ds === dstr);
-      if (!colEntry) return null;
-      const v = balPORow[colEntry[0]];
-      if (v === null || v === undefined || v === '') return null;
-      return safeNum(v);
-    };
-
-    // ── 4. Parse each item group ──
-    for (let i = 5; i < nrows; i++) {
+    let i = 6; // start from row index 6 (row 7 in Excel)
+    while (i < nrows) {
       const row = raw[i];
-      if (!row) continue;
-      const itemNo  = row[0];
-      const rowType = row[9];
+      if (!row) { i++; continue; }
 
-      if (itemNo !== null && itemNo !== undefined && String(itemNo).trim() !== '' && rowType === 'Due') {
+      const itemNo  = row[0];
+      const rowLabel = row[9] ? String(row[9]).trim() : '';
+
+      // Look for item group header: has ITEM number and label == 'Due'
+      if (itemNo !== null && itemNo !== undefined && String(itemNo).trim() !== '' && rowLabel === 'Due') {
         const customer = row[1] ? String(row[1]).trim() : '';
         const detail   = row[3] ? String(row[3]).trim() : '';
 
-        let invId = '';
-        for (let off = 0; off < 7 && i+off < nrows; off++) {
-          const r2 = raw[i+off];
-          if (r2 && r2[4] !== null && r2[4] !== undefined && String(r2[4]).trim()) {
-            invId = String(r2[4]).trim(); break;
-          }
-        }
-
-        let balPORow = null;
-        for (let off = 1; off < 10 && i+off < nrows; off++) {
-          const r2 = raw[i+off];
-          if (!r2) continue;
-          if (r2[0] !== null && r2[0] !== undefined && String(r2[0]).trim() !== '') break;
-          const label = r2[9] ? String(r2[9]).trim() : '';
-          if (label === 'Balance PO') { balPORow = r2; break; }
-        }
-
-        let shipRow = null;
-        for (let off = 1; off < 10 && i+off < nrows; off++) {
-          const r2 = raw[i+off];
-          if (!r2) continue;
-          if (r2[0] !== null && r2[0] !== undefined && String(r2[0]).trim() !== '') break;
-          if (r2[9] && String(r2[9]).toLowerCase().includes('shipment')) { shipRow = r2; break; }
-        }
-
-        const stockQty = invId && invMap[invId] !== undefined ? invMap[invId] : 0;
-
-        const dueDates = [];
-        for (const [c, dstr] of Object.entries(dateCols)) {
+        // Collect Due values for this date
+        const dueByDate = {}; // dateStr → qty
+        for (const [c, ds] of sortedDateCols) {
           const v = safeNum(row[c]);
-          if (v > 0) dueDates.push({ dstr, qty: v });
+          if (v > 0) dueByDate[ds] = v;
         }
-        dueDates.sort((a,b) => a.dstr.localeCompare(b.dstr));
-        if (dueDates.length === 0) continue;
 
-        const shipByDate = {};
-        if (shipRow) {
-          for (const [c, ds] of Object.entries(dateCols)) {
-            const v = safeNum(shipRow[c]);
-            if (v > 0) shipByDate[ds] = (shipByDate[ds] || 0) + v;
+        // Scan sub-rows within this group
+        let invId = '';
+        const shipByDate = {};   // dateStr → qty shipped on that date
+        const balPOByDate = {};  // dateStr → balance PO value (can be negative)
+        let stockQty = 0;
+
+        let j = i + 1;
+        while (j < nrows) {
+          const sr = raw[j];
+          if (!sr) { j++; continue; }
+          // Stop if next item group starts
+          const srItem = sr[0];
+          if (srItem !== null && srItem !== undefined && String(srItem).trim() !== '' && sr[9] === 'Due') break;
+
+          const srLabel = sr[9] ? String(sr[9]).trim() : '';
+
+          if (srLabel === 'Update Stock' || srLabel === 'Inventory ID') {
+            if (!invId && sr[4]) invId = String(sr[4]).trim();
           }
-        }
 
-        for (const { dstr: dueDstr, qty: dueQty } of dueDates) {
-          if (!dataOut[dueDstr]) dataOut[dueDstr] = { r:0, n:0, ov:0, l:0, ready:[], not_ready:[], overdue:[], late:[] };
+          if (srLabel === 'Shipment') {
+            for (const [c, ds] of sortedDateCols) {
+              const v = safeNum(sr[c]);
+              if (v !== 0) shipByDate[ds] = (shipByDate[ds] || 0) + v;
+            }
+          }
 
-          const balPOval = getBalPO(balPORow, dueDstr);
-
-          const entry = {
-            c: customer, d: detail, inv: invId,
-            due: dueQty, stock: stockQty,
-            dk: dueDstr,
-            shipped: shipByDate[dueDstr] || 0,
-          };
-
-          if (dueDstr >= todayStr) {
-            // ✅ FIX: เช็ค Shipment ก่อน — ถ้าส่งแล้วครบหรือเกิน Due → พร้อมส่ง ทันที
-            const shippedQty = entry.shipped || 0;
-            if (shippedQty >= dueQty) {
-              dataOut[dueDstr].r += 1;
-              dataOut[dueDstr].ready.push(entry);
-            } else if (balPOval !== null && balPOval >= 0) {
-              dataOut[dueDstr].r += 1;
-              dataOut[dueDstr].ready.push(entry);
-            } else if (balPOval !== null && balPOval < 0) {
-              if (stockQty >= dueQty) {
-                dataOut[dueDstr].r += 1;
-                dataOut[dueDstr].ready.push(entry);
-              } else {
-                const sh = Math.abs(balPOval);
-                dataOut[dueDstr].n += 1;
-                dataOut[dueDstr].not_ready.push({ ...entry, sh });
-              }
-            } else {
-              if (stockQty >= dueQty) {
-                dataOut[dueDstr].r += 1;
-                dataOut[dueDstr].ready.push(entry);
-              } else {
-                const sh = dueQty - stockQty;
-                dataOut[dueDstr].n += 1;
-                dataOut[dueDstr].not_ready.push({ ...entry, sh });
+          if (srLabel === 'Balance PO') {
+            for (const [c, ds] of sortedDateCols) {
+              const v = sr[c];
+              if (v !== null && v !== undefined && v !== '') {
+                balPOByDate[ds] = safeNum(v);
               }
             }
-            continue;
           }
 
-          // วันที่ผ่านมา
-          if (balPOval !== null && balPOval >= 0) continue;
+          j++;
+        }
 
-          const shippedOnDue = shipByDate[dueDstr] || 0;
-          if (shippedOnDue >= dueQty && (balPOval === null || balPOval >= 0)) continue;
+        // Stock from Inv Balance sheet
+        stockQty = (invId && invMap[invId] !== undefined) ? invMap[invId] : 0;
 
-          const shOnDue = balPOval !== null && balPOval < 0
-            ? Math.abs(balPOval)
-            : Math.max(0, dueQty - shippedOnDue);
+        // ── Classify each due date ──
+        for (const [dueDate, dueQty] of Object.entries(dueByDate)) {
+          if (!dataOut[dueDate]) continue;
 
-          if (dueDstr <= tomorrowStr) {
-            dataOut[dueDstr].ov += 1;
-            dataOut[dueDstr].overdue.push({ ...entry, sh: shOnDue, origDue: dueDstr });
-          }
+          const shipped = shipByDate[dueDate] || 0;
+          const balPO   = balPOByDate.hasOwnProperty(dueDate) ? balPOByDate[dueDate] : null;
 
-          const futDates = sortedDateColEntries.map(([c,ds]) => ds).filter(ds => ds > dueDstr && ds <= tomorrowStr);
-          for (const ds of futDates) {
-            const balOnDs = getBalPO(balPORow, ds);
-            if (!dataOut[ds]) dataOut[ds] = { r:0, n:0, ov:0, l:0, ready:[], not_ready:[], overdue:[], late:[] };
+          const entry = { c: customer, d: detail, inv: invId, due: dueQty, stock: stockQty, dk: dueDate };
 
-            if (balOnDs !== null && balOnDs >= 0) {
-              const shippedOnDs = shipByDate[ds] || 0;
-              if (shippedOnDs > 0) {
-                const alreadyLt = dataOut[ds].late.some(x => x.inv === invId && x.origDue === dueDstr);
-                if (!alreadyLt) {
-                  dataOut[ds].l += 1;
-                  dataOut[ds].late.push({ ...entry, dk: ds, shipped: shippedOnDs, origDue: dueDstr, sh: 0 });
+          if (dueDate < TODAY) {
+            // ═══════════════════════════════
+            // PAST DATE
+            // ═══════════════════════════════
+            // 1. ส่งแล้ว: shipment == due (ส่งครบในวันนั้นเลย)
+            if (shipped > 0 && shipped >= dueQty) {
+              dataOut[dueDate].sent += 1;
+              dataOut[dueDate].sent_list.push({ ...entry, shipped });
+              continue;
+            }
+
+            // 2. ค้างส่ง: Balance PO < 0 → carry forward ถึง tomorrow
+            if (balPO !== null && balPO < 0) {
+              // Find the LAST date where BPO is still negative (carry overdue forward)
+              // Show on EACH date from dueDate+1 up to TOMORROW where BPO is still < 0
+              const ovEntry = { ...entry, origDue: dueDate, balPO };
+
+              // Show overdue on dueDate itself
+              dataOut[dueDate].ov += 1;
+              dataOut[dueDate].overdue.push({ ...ovEntry, dk: dueDate });
+
+              // Carry forward to subsequent dates up to TOMORROW
+              for (const [c2, ds2] of sortedDateCols) {
+                if (ds2 <= dueDate) continue;
+                if (ds2 > TOMORROW) break;
+                if (!dataOut[ds2]) continue;
+
+                const balOnDs2 = balPOByDate.hasOwnProperty(ds2) ? balPOByDate[ds2] : null;
+                const shipOnDs2 = shipByDate[ds2] || 0;
+
+                if (balOnDs2 !== null && balOnDs2 >= 0 && shipOnDs2 > 0) {
+                  // 5. ล่าช้า: BPO กลับมา >= 0 และมี shipment → บันทึกเป็น "ส่งล่าช้า" ในวันที่ส่ง
+                  // ตรวจว่าวันก่อนหน้า BPO เคยเป็น < 0
+                  const prevDate = sortedDateCols.find(([c3, ds3]) => ds3 < ds2 &&
+                    balPOByDate.hasOwnProperty(ds3) && balPOByDate[ds3] < 0);
+                  if (prevDate) {
+                    // บันทึก "ล่าช้า" ใน ds2 (วันที่ส่งจริง)
+                    const alreadyLate = (dataOut[ds2].late_list||[]).some(x => x.inv === invId && x.origDue === dueDate);
+                    if (!alreadyLate) {
+                      dataOut[ds2].l += 1;
+                      dataOut[ds2].late_list.push({ ...entry, dk: ds2, origDue: dueDate, shipDate: ds2, shipped: shipOnDs2 });
+                    }
+                  }
+                  break; // BPO resolved — stop carry forward
+                }
+
+                if (balOnDs2 !== null && balOnDs2 >= 0) {
+                  // BPO resolved without shipment on this date — stop carry
+                  break;
+                }
+
+                // Still negative → carry overdue to ds2
+                if (ds2 >= TODAY) {
+                  const alreadyOv = (dataOut[ds2].overdue||[]).some(x => x.inv === invId && x.origDue === dueDate);
+                  if (!alreadyOv) {
+                    dataOut[ds2].ov += 1;
+                    dataOut[ds2].overdue.push({ ...ovEntry, dk: ds2, balPO: balOnDs2 || balPO });
+                  }
                 }
               }
-              break;
+              continue;
             }
 
-            const shOnDs = balOnDs !== null && balOnDs < 0 ? Math.abs(balOnDs) : shOnDue;
+            // 3. ส่งแล้วบางส่วน (shipped > 0 but < due) → ดูเป็น partial, show as sent
+            if (shipped > 0 && shipped < dueQty) {
+              dataOut[dueDate].sent += 1;
+              dataOut[dueDate].sent_list.push({ ...entry, shipped });
+              continue;
+            }
 
-            const alreadyOv = dataOut[ds].overdue.some(x => x.inv === invId && x.origDue === dueDstr);
-            const alreadyLt = dataOut[ds].late.some(x => x.inv === invId && x.origDue === dueDstr);
-            if (alreadyOv || alreadyLt) continue;
+            // ไม่มี shipment และ BPO >= 0 หรือ null → ถือว่า no action needed (ไม่ count)
+            continue;
 
-            dataOut[ds].ov += 1;
-            dataOut[ds].overdue.push({ ...entry, dk: ds, origDue: dueDstr, isCarryover: true, sh: shOnDs });
+          } else {
+            // ═══════════════════════════════
+            // TODAY or FUTURE
+            // ═══════════════════════════════
+            // 2. พร้อมส่ง: stock >= due
+            // 3. ไม่พร้อมส่ง: stock < due
+            if (stockQty >= dueQty) {
+              dataOut[dueDate].r += 1;
+              dataOut[dueDate].ready.push({ ...entry });
+            } else {
+              const sh = dueQty - stockQty;
+              dataOut[dueDate].n += 1;
+              dataOut[dueDate].not_ready.push({ ...entry, sh });
+            }
           }
         }
+
+        i = j; // advance to next group
+        continue;
       }
+
+      i++;
     }
 
-    // ── 5. Parse standalone "Balance PO" rows ──
-    for (let i = 5; i < nrows; i++) {
-      const row = raw[i];
-      if (!row) continue;
-      const rowLabel = row[9] ? String(row[9]).trim() : '';
-      if (rowLabel !== 'Balance PO') continue;
-
-      let hasDueRow = false;
-      for (let back = 1; back <= 12 && i - back >= 5; back++) {
-        const pr = raw[i - back];
-        if (!pr) continue;
-        if (pr[9] === 'Due') { hasDueRow = true; break; }
-        if (pr[0] !== null && pr[0] !== undefined && String(pr[0]).trim() !== '') break;
-      }
-      if (hasDueRow) continue;
-
-      let customer = '', detail = '', invId = '';
-      for (let back = 1; back <= 12 && i - back >= 5; back++) {
-        const pr = raw[i - back];
-        if (!pr) continue;
-        if (!customer && pr[1]) customer = String(pr[1]).trim();
-        if (!detail && pr[3] && pr[0] !== null && pr[0] !== undefined && String(pr[0]).trim() !== '') {
-          detail = String(pr[3]).trim();
-        }
-        if (!invId && pr[4]) invId = String(pr[4]).trim();
-        if (customer && detail && invId) break;
-      }
-
-      let origDue = null;
-      for (const [c, ds] of sortedDateColEntries) {
-        const v = safeNum(row[c]);
-        if (v < 0 && origDue === null) { origDue = ds; break; }
-      }
-      if (origDue === null) continue;
-
-      const checkDates = sortedDateColEntries.map(([c,ds]) => ds).filter(ds => ds >= origDue && ds <= tomorrowStr);
-      for (const dk of checkDates) {
-        const colEntry = sortedDateColEntries.find(([c, ds]) => ds === dk);
-        if (!colEntry) continue;
-        const balOnDate = safeNum(row[colEntry[0]]);
-        if (balOnDate >= 0) continue;
-        const balQty = Math.abs(balOnDate);
-        if (!dataOut[dk]) dataOut[dk] = { r:0, n:0, ov:0, l:0, ready:[], not_ready:[], overdue:[], late:[] };
-
-        const alreadyExists =
-          dataOut[dk].overdue.some(x => x.inv === invId && x.origDue === origDue) ||
-          dataOut[dk].late.some(x => x.inv === invId && x.origDue === origDue);
-        if (alreadyExists) continue;
-
-        const entryBPO = { c: customer, d: detail, inv: invId, bal: balQty, origDue, dk, sh: balQty, due: balQty, stock: 0, isCarryover: true, isBPO: true };
-        dataOut[dk].ov += 1;
-        dataOut[dk].overdue.push(entryBPO);
-      }
-    }
-
-    // ── 6. Update dashboard ──
+    // ── 5. Update dashboard ──
     const now = new Date();
     const t  = now.toLocaleTimeString('th-TH');
     const dt = now.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'numeric'});
     const luEl = document.getElementById('lastUpdatedBadge');
     if (luEl) luEl.textContent = `${dt} ${t}`;
 
-    const invCount = Object.keys(invMap).length;
-    const newHash  = hashData(dataOut);
+    const newHash = hashData(dataOut);
     if (newHash !== _lastHash) {
       DATA = dataOut;
       _lastHash = newHash;
       document.getElementById('srcFile').textContent = fileName;
 
-      if (Object.keys(DATA).filter(d => DATA[d].r+DATA[d].n+DATA[d].ov > 0).length === 0) {
+      const hasData = Object.keys(DATA).some(d => DATA[d].r+DATA[d].n+DATA[d].ov+DATA[d].sent > 0);
+      if (!hasData) {
         status.textContent = '⚠️ ไม่พบข้อมูลการส่งในไฟล์';
         status.style.color = '#f87171';
       } else {
         if (barChartInst) barChartInst.destroy();
         donutInsts.forEach(c => c && c.destroy());
         renderAll();
+        pushToGist(DATA, fileName);
+        const invCount = Object.keys(invMap).length;
         const invNote = invCount > 0 ? ` | Stock ${invCount} รายการ` : ' | ⚠️ ไม่พบ Inv Balance';
         status.textContent = `✅ ${Object.keys(DATA).length} วัน${invNote} | อัปเดต ${t}`;
         status.style.color = '#34d399';
@@ -1445,6 +1491,7 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
     }
 
   } catch (e) {
+    const status = document.getElementById('gsStatus');
     status.textContent = `❌ ${e.message}`;
     status.style.color = '#f87171';
     console.error('parseExcelFileFromBytes error:', e);
@@ -1506,11 +1553,121 @@ function setAutoRefresh(val) {
   }
   updateCountdown();
   _arCountdownTimer = setInterval(updateCountdown, 1000);
-  // ✅ fetchData() จะใช้ _savedBytes (Uint8Array) ที่ไม่ถูก detach → ทำงานได้ทุก cycle
   _arTimer = setInterval(() => { _arSecondsLeft = _arTotalSeconds; fetchData(); }, secs * 1000);
   const labelMap = {'10':'10 วินาที','30':'30 วินาที','60':'1 นาที','300':'5 นาที','900':'15 นาที','1800':'30 นาที'};
   statusEl.textContent = `🔄 Auto-refresh ทุก ${labelMap[val]||val+'s'}`;
   statusEl.style.color = '#34d399';
+}
+
+// =====================================================================
+// GIST SYNC SYSTEM (ไม่แตะ)
+// =====================================================================
+const GIST_FILENAME = 'delivery_data.json';
+let _gistId    = localStorage.getItem('gist_id')    || '';
+let _gistToken = localStorage.getItem('gist_token') || '';
+let _appMode   = localStorage.getItem('app_mode')   || 'X';
+let _yTimer    = null;
+let _ySecsLeft = 30, _yTotalSecs = 30;
+let _gistEtag  = '';
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (_gistId)    document.getElementById('gistId').value    = _gistId;
+  if (_gistToken) document.getElementById('gistToken').value = _gistToken;
+  applyMode(_appMode);
+});
+
+function setMode(mode) {
+  _appMode = mode;
+  localStorage.setItem('app_mode', mode);
+  applyMode(mode);
+}
+
+function applyMode(mode) {
+  document.getElementById('modeXBtn').classList.toggle('active', mode === 'X');
+  document.getElementById('modeYBtn').classList.toggle('active', mode === 'Y');
+  document.getElementById('panelX').style.display = mode === 'X' ? '' : 'none';
+  document.getElementById('panelY').style.display = mode === 'Y' ? '' : 'none';
+  if (mode === 'Y') { stopYSync(); startYSync(parseInt(document.getElementById('ySyncSelect').value) || 30); }
+  else { stopYSync(); }
+}
+
+function saveGistConfig() {
+  _gistId    = document.getElementById('gistId').value.trim();
+  _gistToken = document.getElementById('gistToken').value.trim();
+  localStorage.setItem('gist_id',    _gistId);
+  localStorage.setItem('gist_token', _gistToken);
+  const st = document.getElementById('cfgStatus');
+  if (!_gistId || !_gistToken) {
+    st.textContent = '⚠️ กรุณากรอก Gist ID และ Token'; st.style.color = '#f59e0b'; return;
+  }
+  st.textContent = '✅ บันทึกแล้ว'; st.style.color = '#34d399';
+  setTimeout(() => { st.textContent = ''; }, 2500);
+  if (_appMode === 'Y') { stopYSync(); startYSync(parseInt(document.getElementById('ySyncSelect').value) || 30); }
+}
+
+async function pushToGist(dataObj, fileName) {
+  if (!_gistId || !_gistToken) return;
+  try {
+    const payload = { meta: { pushedAt: new Date().toISOString(), fileName }, data: dataObj };
+    await fetch(`https://api.github.com/gists/${_gistId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${_gistToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(payload) } } })
+    });
+    const st = document.getElementById('gsStatus');
+    if (st) st.textContent += ' | ☁️ ส่ง Gist แล้ว';
+  } catch(e) { console.warn('pushToGist error:', e); }
+}
+
+async function pullFromGist() {
+  const st = document.getElementById('yStatus');
+  if (!_gistId) { if(st){st.textContent='⚠️ ยังไม่ได้ตั้งค่า Gist ID'; st.style.color='#f59e0b';} return; }
+  try {
+    const headers = { 'Accept': 'application/vnd.github.v3+json' };
+    if (_gistToken) headers['Authorization'] = `token ${_gistToken}`;
+    if (_gistEtag)  headers['If-None-Match'] = _gistEtag;
+    const res = await fetch(`https://api.github.com/gists/${_gistId}`, { headers });
+    if (res.status === 304) { if(st){st.textContent=`✅ ข้อมูลเดิม (${new Date().toLocaleTimeString('th-TH')})`; st.style.color='#34d399';} return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _gistEtag = res.headers.get('etag') || '';
+    const gist = await res.json();
+    const file = gist.files && gist.files[GIST_FILENAME];
+    if (!file) { if(st){st.textContent='⚠️ ยังไม่มีข้อมูลใน Gist'; st.style.color='#f59e0b';} return; }
+    const raw = JSON.parse(file.content);
+    if (!raw.data) throw new Error('ไม่พบ data ใน Gist');
+    const newHash = hashData(raw.data);
+    if (newHash !== _lastHash) {
+      DATA = raw.data; _lastHash = newHash; _dataLoaded = true;
+      if (barChartInst) barChartInst.destroy();
+      donutInsts.forEach(c => c && c.destroy());
+      renderAll();
+    }
+    const pushedAt = raw.meta?.pushedAt ? new Date(raw.meta.pushedAt).toLocaleTimeString('th-TH') : '?';
+    if(st){st.textContent=`✅ sync ${new Date().toLocaleTimeString('th-TH')} | ไฟล์: ${raw.meta?.fileName||''} | X ส่งเมื่อ ${pushedAt}`; st.style.color='#34d399';}
+  } catch(e) {
+    if(st){st.textContent=`❌ ${e.message}`; st.style.color='#f87171';}
+    console.warn('pullFromGist error:', e);
+  }
+}
+
+function setYSync(val) { stopYSync(); startYSync(parseInt(val) || 30); }
+
+function startYSync(secs) {
+  _yTotalSecs = secs; _ySecsLeft = 0;
+  const cdEl = document.getElementById('ySyncCountdown');
+  function tick() {
+    if (_ySecsLeft <= 0) { pullFromGist(); _ySecsLeft = _yTotalSecs; }
+    const m = Math.floor(_ySecsLeft/60), s = _ySecsLeft%60;
+    const label = m>0 ? `${m}:${String(s).padStart(2,'0')}` : `${s}s`;
+    if(cdEl) cdEl.innerHTML = `<span class="pulse"></span> sync ใน ${label}`;
+    _ySecsLeft--;
+  }
+  tick();
+  _yTimer = setInterval(tick, 1000);
+}
+
+function stopYSync() {
+  if (_yTimer) { clearInterval(_yTimer); _yTimer = null; }
 }
 </script>
 </body>
