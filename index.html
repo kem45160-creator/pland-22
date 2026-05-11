@@ -1121,7 +1121,7 @@ function renderTable(filter) {
 
   let rows = [];
   dates.forEach(dk => (DATA[dk]?.not_ready||[]).forEach(item => rows.push({...item, dk})));
-  rows.sort((a, b) => (a.sh || 0) - (b.sh || 0));
+  rows.sort((a, b) => (b.sh || 0) - (a.sh || 0));
 
   const maxSh = Math.max(...rows.map(x => x.sh||0), 1);
 
