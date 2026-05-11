@@ -1284,7 +1284,7 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
           };
 
           if (dueDstr >= todayStr) {
-            // ✅ FIX: เช็ค Shipment ก่อน — ถ้าส่งแล้วครบ Due → พร้อมส่ง ทันที
+            // ✅ FIX: เช็ค Shipment ก่อน — ถ้าส่งแล้วครบหรือเกิน Due → พร้อมส่ง ทันที
             const shippedQty = entry.shipped || 0;
             if (shippedQty >= dueQty) {
               dataOut[dueDstr].r += 1;
