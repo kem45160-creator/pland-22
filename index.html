@@ -370,26 +370,6 @@
 
   .inv-id { font-family: 'DM Mono', monospace; font-size:11.5px; color:var(--blue); font-weight:600; }
 
-  /* MODE SWITCHER */
-  .mode-switcher { display:flex; gap:4px; margin-top:4px; }
-  .mode-btn {
-    flex:1; padding:6px 4px; border-radius:8px; border:1px solid var(--border);
-    background:rgba(255,255,255,.5); color:var(--text-muted); font-size:11px; font-weight:600;
-    cursor:pointer; font-family:'Kanit',sans-serif; transition:all .15s; text-align:center;
-  }
-  .mode-btn.active { background:rgba(219,234,254,.85); color:var(--blue); border-color:rgba(37,99,235,.4); }
-  .mode-btn:hover:not(.active) { background:rgba(255,255,255,.8); }
-
-  /* GIST INPUT */
-  .gs-input {
-    width:100%; margin-top:5px; padding:6px 8px; border-radius:7px;
-    border:1px solid rgba(37,99,235,.25); background:rgba(255,255,255,.7);
-    font-size:11px; color:var(--text); font-family:'Kanit','DM Mono',monospace;
-    outline:none; transition:border-color .15s;
-  }
-  .gs-input:focus { border-color:var(--blue); background:rgba(255,255,255,.9); }
-  .gs-input::placeholder { color:var(--text-dim); }
-
   .no-data-overlay {
     position: absolute; inset: 0;
     display: flex; flex-direction: column;
@@ -414,69 +394,30 @@
   </div>
 
   <div class="gs-connect">
-
-    <!-- MODE SWITCHER -->
-    <div class="mode-switcher" id="modeSwitcher">
-      <button class="mode-btn active" id="modeXBtn" onclick="setMode('X')">🖥 เครื่อง X <span style="font-size:9px;opacity:.6">(มีไฟล์)</span></button>
-      <button class="mode-btn" id="modeYBtn" onclick="setMode('Y')">📺 เครื่อง Y <span style="font-size:9px;opacity:.6">(แสดงผล)</span></button>
+    <div class="gs-label">📂 แหล่งข้อมูล (Excel)</div>
+    <div class="file-picker-area" id="filePickerArea" title="คลิกเพื่อเลือกไฟล์ Excel">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm" onchange="onFileSelected(this)">
+      <div class="file-picker-icon">📁</div>
+      <div class="file-picker-text">คลิกหรือลากไฟล์มาวาง</div>
+      <div class="file-picker-hint">.xlsx / .xls / .xlsm</div>
     </div>
-
-    <!-- GIST CONFIG (แสดงเสมอ) -->
-    <div style="margin-top:10px">
-      <div class="gs-label" style="margin-bottom:4px">🔗 GitHub Gist Config</div>
-      <input class="gs-input" id="gistId"    placeholder="Gist ID  (เช่น abc123def456)" title="วางตรงนี้">
-      <input class="gs-input" id="gistToken" placeholder="GitHub Token (ghp_...)" type="password" title="วางตรงนี้" id="gistToken">
-      <button class="gs-btn" style="margin-top:4px" onclick="saveGistConfig()">💾 บันทึก Config</button>
-      <div class="gs-status" id="cfgStatus" style="min-height:14px"></div>
+    <div id="srcFile">—</div>
+    <button class="gs-btn" id="gsBtn" onclick="fetchData()">🔄 โหลดข้อมูลใหม่</button>
+    <div class="gs-status" id="gsStatus">📂 กรุณาเลือกไฟล์ Excel เพื่อโหลดข้อมูล</div>
+    <div class="ar-row">
+      <span class="ar-label">⏱ Auto-refresh</span>
+      <select class="ar-select" id="arSelect" onchange="setAutoRefresh(this.value)">
+        <option value="0">ปิด</option>
+        <option value="10">10 วินาที</option>
+        <option value="30">30 วินาที</option>
+        <option value="60">1 นาที</option>
+        <option value="300">5 นาที</option>
+        <option value="900">15 นาที</option>
+        <option value="1800">30 นาที</option>
+      </select>
     </div>
-
-    <!-- เครื่อง X: file picker -->
-    <div id="panelX">
-      <div class="gs-label" style="margin-top:10px">📂 แหล่งข้อมูล (Excel)</div>
-      <div class="file-picker-area" id="filePickerArea" title="คลิกเพื่อเลือกไฟล์ Excel">
-        <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm" onchange="onFileSelected(this)">
-        <div class="file-picker-icon">📁</div>
-        <div class="file-picker-text">คลิกหรือลากไฟล์มาวาง</div>
-        <div class="file-picker-hint">.xlsx / .xls / .xlsm</div>
-      </div>
-      <div id="srcFile">—</div>
-      <button class="gs-btn" id="gsBtn" onclick="fetchData()">🔄 โหลดข้อมูลใหม่</button>
-      <div class="gs-status" id="gsStatus">📂 กรุณาเลือกไฟล์ Excel เพื่อโหลดข้อมูล</div>
-      <div class="ar-row">
-        <span class="ar-label">⏱ Auto-refresh</span>
-        <select class="ar-select" id="arSelect" onchange="setAutoRefresh(this.value)">
-          <option value="0">ปิด</option>
-          <option value="10">10 วินาที</option>
-          <option value="30">30 วินาที</option>
-          <option value="60">1 นาที</option>
-          <option value="300">5 นาที</option>
-          <option value="900">15 นาที</option>
-          <option value="1800">30 นาที</option>
-        </select>
-      </div>
-      <div class="ar-countdown" id="arCountdown"></div>
-      <div class="gs-help">📂 เลือกไฟล์ → ข้อมูลโหลด & ส่งขึ้น Gist อัตโนมัติ</div>
-    </div>
-
-    <!-- เครื่อง Y: viewer only -->
-    <div id="panelY" style="display:none">
-      <div style="margin-top:10px">
-        <div class="gs-label">📺 โหมดแสดงผล</div>
-        <div class="gs-help" style="margin-top:4px">รับข้อมูลจาก Gist อัตโนมัติ ไม่ต้องโหลดไฟล์</div>
-        <div class="gs-status" id="yStatus" style="margin-top:6px;min-height:14px">⏳ รอรับข้อมูล...</div>
-        <div class="ar-row" style="margin-top:8px">
-          <span class="ar-label">⏱ Sync ทุก</span>
-          <select class="ar-select" id="ySyncSelect" onchange="setYSync(this.value)">
-            <option value="15">15 วินาที</option>
-            <option value="30" selected>30 วินาที</option>
-            <option value="60">1 นาที</option>
-            <option value="300">5 นาที</option>
-          </select>
-        </div>
-        <div class="ar-countdown" id="ySyncCountdown" style="margin-top:4px"></div>
-      </div>
-    </div>
-
+    <div class="ar-countdown" id="arCountdown"></div>
+    <div class="gs-help">📂 เลือกไฟล์ Excel แล้วข้อมูลจะโหลดทันที</div>
   </div>
 
   <div class="sidebar-bottom">
@@ -1197,8 +1138,9 @@ async function fetchData() {
 async function parseExcelFileFromBytes(uint8Array, fileName) {
   const btn    = document.getElementById('gsBtn');
   const status = document.getElementById('gsStatus');
-  if (btn) btn.disabled = true;
-  if (status) { status.style.color = 'rgba(10,20,50,.45)'; status.textContent = '⏳ กำลังประมวลผลข้อมูล...'; }
+  btn.disabled = true;
+  status.style.color = 'rgba(10,20,50,.45)';
+  status.textContent = '⏳ กำลังประมวลผลข้อมูล...';
 
   try {
     // ✅ ส่ง Uint8Array เข้า XLSX.read() โดยตรง (type:'array' รับ Uint8Array ได้)
@@ -1342,7 +1284,12 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
           };
 
           if (dueDstr >= todayStr) {
-            if (balPOval !== null && balPOval >= 0) {
+            // ✅ FIX: เช็ค Shipment ก่อน — ถ้าส่งแล้วครบ Due → พร้อมส่ง ทันที
+            const shippedQty = entry.shipped || 0;
+            if (shippedQty >= dueQty) {
+              dataOut[dueDstr].r += 1;
+              dataOut[dueDstr].ready.push(entry);
+            } else if (balPOval !== null && balPOval >= 0) {
               dataOut[dueDstr].r += 1;
               dataOut[dueDstr].ready.push(entry);
             } else if (balPOval !== null && balPOval < 0) {
@@ -1479,28 +1426,30 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
     if (newHash !== _lastHash) {
       DATA = dataOut;
       _lastHash = newHash;
-      const srcEl = document.getElementById('srcFile');
-      if (srcEl) srcEl.textContent = fileName;
+      document.getElementById('srcFile').textContent = fileName;
 
       if (Object.keys(DATA).filter(d => DATA[d].r+DATA[d].n+DATA[d].ov > 0).length === 0) {
-        if (status) { status.textContent = '⚠️ ไม่พบข้อมูลการส่งในไฟล์'; status.style.color = '#f87171'; }
+        status.textContent = '⚠️ ไม่พบข้อมูลการส่งในไฟล์';
+        status.style.color = '#f87171';
       } else {
         if (barChartInst) barChartInst.destroy();
         donutInsts.forEach(c => c && c.destroy());
         renderAll();
-        pushToGist(DATA, fileName);
         const invNote = invCount > 0 ? ` | Stock ${invCount} รายการ` : ' | ⚠️ ไม่พบ Inv Balance';
-        if (status) { status.textContent = `✅ ${Object.keys(DATA).length} วัน${invNote} | อัปเดต ${t}`; status.style.color = '#34d399'; }
+        status.textContent = `✅ ${Object.keys(DATA).length} วัน${invNote} | อัปเดต ${t}`;
+        status.style.color = '#34d399';
       }
     } else {
-      if (status) { status.textContent = `✅ ข้อมูลไม่เปลี่ยนแปลง (${t})`; status.style.color = '#34d399'; }
+      status.textContent = `✅ ข้อมูลไม่เปลี่ยนแปลง (${t})`;
+      status.style.color = '#34d399';
     }
 
   } catch (e) {
-    if (status) { status.textContent = `❌ ${e.message}`; status.style.color = '#f87171'; }
+    status.textContent = `❌ ${e.message}`;
+    status.style.color = '#f87171';
     console.error('parseExcelFileFromBytes error:', e);
   } finally {
-    if (btn) btn.disabled = false;
+    btn.disabled = false;
   }
 }
 
@@ -1508,7 +1457,6 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
 (function() {
   const area  = document.getElementById('filePickerArea');
   const input = document.getElementById('fileInput');
-  if (!area || !input) return;
   area.addEventListener('dragover', e => {
     e.preventDefault();
     area.style.borderColor = 'rgba(37,99,235,.8)';
@@ -1529,141 +1477,11 @@ async function parseExcelFileFromBytes(uint8Array, fileName) {
       input.files = dt.files;
       onFileSelected(input);
     } else if (file) {
-      const st = document.getElementById('gsStatus');
-      if (st) { st.textContent = '❌ กรุณาเลือกไฟล์ .xlsx หรือ .xls เท่านั้น'; st.style.color = '#f87171'; }
+      document.getElementById('gsStatus').textContent = '❌ กรุณาเลือกไฟล์ .xlsx หรือ .xls เท่านั้น';
+      document.getElementById('gsStatus').style.color = '#f87171';
     }
   });
 })();
-
-// =====================================================================
-// ✅ GIST SYNC SYSTEM
-// เครื่อง X: parse Excel → push JSON ขึ้น Gist
-// เครื่อง Y: poll Gist ทุก N วินาที → renderAll()
-// =====================================================================
-
-const GIST_FILENAME = 'delivery_data.json';
-let _gistId    = localStorage.getItem('gist_id')    || '';
-let _gistToken = localStorage.getItem('gist_token') || '';
-let _appMode   = localStorage.getItem('app_mode')   || 'X'; // 'X' | 'Y'
-let _yTimer    = null, _yCountdownTimer = null, _ySecsLeft = 30, _yTotalSecs = 30;
-let _gistEtag  = '';
-
-// ─── Init on load ───
-window.addEventListener('DOMContentLoaded', () => {
-  if (_gistId)    document.getElementById('gistId').value    = _gistId;
-  if (_gistToken) document.getElementById('gistToken').value = _gistToken;
-  applyMode(_appMode);
-});
-
-function setMode(mode) {
-  _appMode = mode;
-  localStorage.setItem('app_mode', mode);
-  applyMode(mode);
-}
-
-function applyMode(mode) {
-  document.getElementById('modeXBtn').classList.toggle('active', mode === 'X');
-  document.getElementById('modeYBtn').classList.toggle('active', mode === 'Y');
-  document.getElementById('panelX').style.display = mode === 'X' ? '' : 'none';
-  document.getElementById('panelY').style.display = mode === 'Y' ? '' : 'none';
-  if (mode === 'Y') {
-    stopYSync();
-    const secs = parseInt(document.getElementById('ySyncSelect').value) || 30;
-    startYSync(secs);
-  } else {
-    stopYSync();
-  }
-}
-
-function saveGistConfig() {
-  _gistId    = document.getElementById('gistId').value.trim();
-  _gistToken = document.getElementById('gistToken').value.trim();
-  localStorage.setItem('gist_id',    _gistId);
-  localStorage.setItem('gist_token', _gistToken);
-  const st = document.getElementById('cfgStatus');
-  if (!_gistId || !_gistToken) {
-    st.textContent = '⚠️ กรุณากรอก Gist ID และ Token'; st.style.color = '#f59e0b'; return;
-  }
-  st.textContent = '✅ บันทึกแล้ว'; st.style.color = '#34d399';
-  setTimeout(() => { st.textContent = ''; }, 2500);
-  if (_appMode === 'Y') { stopYSync(); startYSync(parseInt(document.getElementById('ySyncSelect').value)||30); }
-}
-
-// ── Push data to Gist (เครื่อง X) ──
-async function pushToGist(dataObj, fileName) {
-  if (!_gistId || !_gistToken) return; // ถ้าไม่มี config ก็ข้ามไป
-  try {
-    const payload = { meta: { pushedAt: new Date().toISOString(), fileName }, data: dataObj };
-    await fetch(`https://api.github.com/gists/${_gistId}`, {
-      method: 'PATCH',
-      headers: { 'Authorization': `token ${_gistToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(payload) } } })
-    });
-    const st = document.getElementById('gsStatus');
-    if (st) { st.textContent += ' | ☁️ ส่ง Gist แล้ว'; }
-  } catch(e) {
-    console.warn('pushToGist error:', e);
-  }
-}
-
-// ── Pull data from Gist (เครื่อง Y) ──
-async function pullFromGist() {
-  const st = document.getElementById('yStatus');
-  if (!_gistId) { st.textContent = '⚠️ ยังไม่ได้ตั้งค่า Gist ID'; st.style.color='#f59e0b'; return; }
-  try {
-    const headers = { 'Accept': 'application/vnd.github.v3+json' };
-    if (_gistToken) headers['Authorization'] = `token ${_gistToken}`;
-    if (_gistEtag)  headers['If-None-Match'] = _gistEtag;
-    const res = await fetch(`https://api.github.com/gists/${_gistId}`, { headers });
-    if (res.status === 304) {
-      st.textContent = `✅ ข้อมูลเดิม (${new Date().toLocaleTimeString('th-TH')})`; st.style.color='#34d399'; return;
-    }
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    _gistEtag = res.headers.get('etag') || '';
-    const gist = await res.json();
-    const file = gist.files && gist.files[GIST_FILENAME];
-    if (!file) { st.textContent = '⚠️ ยังไม่มีข้อมูลใน Gist'; st.style.color='#f59e0b'; return; }
-    const raw = typeof file.content === 'string' ? JSON.parse(file.content) : file;
-    if (!raw.data) throw new Error('ไม่พบ data ใน Gist');
-    const newHash = hashData(raw.data);
-    if (newHash !== _lastHash) {
-      DATA = raw.data; _lastHash = newHash; _dataLoaded = true;
-      if (barChartInst) barChartInst.destroy();
-      donutInsts.forEach(c => c && c.destroy());
-      renderAll();
-    }
-    const pushedAt = raw.meta?.pushedAt ? new Date(raw.meta.pushedAt).toLocaleTimeString('th-TH') : '?';
-    const fn = raw.meta?.fileName || '';
-    st.textContent = `✅ sync ${new Date().toLocaleTimeString('th-TH')} | ไฟล์: ${fn} | X ส่งเมื่อ ${pushedAt}`;
-    st.style.color = '#34d399';
-  } catch(e) {
-    st.textContent = `❌ ${e.message}`; st.style.color='#f87171';
-    console.warn('pullFromGist error:', e);
-  }
-}
-
-function setYSync(val) { stopYSync(); startYSync(parseInt(val)||30); }
-
-function startYSync(secs) {
-  _yTotalSecs = secs; _ySecsLeft = 0;
-  const cdEl = document.getElementById('ySyncCountdown');
-  function tick() {
-    if (_ySecsLeft <= 0) {
-      pullFromGist();
-      _ySecsLeft = _yTotalSecs;
-    }
-    const m = Math.floor(_ySecsLeft/60), s = _ySecsLeft%60;
-    const label = m>0 ? `${m}:${String(s).padStart(2,'0')}` : `${s}s`;
-    if(cdEl) cdEl.innerHTML = `<span class="pulse"></span> sync ใน ${label}`;
-    _ySecsLeft--;
-  }
-  tick();
-  _yTimer = setInterval(tick, 1000);
-}
-
-function stopYSync() {
-  if (_yTimer) { clearInterval(_yTimer); _yTimer = null; }
-}
 
 // ── AUTO-REFRESH ──
 let _arTimer = null, _arCountdownTimer = null;
