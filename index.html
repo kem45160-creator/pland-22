@@ -840,7 +840,7 @@ function renderTomLists() {
   };
   document.getElementById('tomReadyList').innerHTML =
     (tmData.ready||[]).length
-      ? (tmData.ready||[]).map(r => renderItem(r, '#34d399')).join('')
+      ? (tmData.ready||[]).map(r => renderItem(r, '#2d7d72')).join('')
       : `<div style="font-size:11px;color:rgba(30,58,138,0.85);padding:6px 0">ไม่มีรายการ</div>`;
   document.getElementById('tomNotReadyList').innerHTML =
     (tmData.not_ready||[]).length
