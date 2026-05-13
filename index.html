@@ -23,9 +23,9 @@
     --blue: #2563eb;
     --blue-dark: #1d4ed8;
     --blue-glow: rgba(37,99,235,0.25);
-    --green: #059669;
+    --green: #2d7d72;
     --green-glow: rgba(5,150,105,0.25);
-    --red: #dc2626;
+    --red: #E05C63;
     --red-glow: rgba(220,38,38,0.25);
     --amber: #d97706;
     --amber-glow: rgba(217,119,6,0.25);
@@ -170,8 +170,8 @@
   }
   .ar-select option { background: #f0f7ff; color: #1e3a8a; }
 
-  .ar-countdown { font-size:10px; color:#059669; margin-top:4px; min-height:14px; display:flex; align-items:center; gap:4px; }
-  .ar-countdown .pulse { width:6px; height:6px; border-radius:50%; background:#059669; animation:pulse 1s ease-in-out infinite; flex-shrink:0; }
+  .ar-countdown { font-size:10px; color:#2d7d72; margin-top:4px; min-height:14px; display:flex; align-items:center; gap:4px; }
+  .ar-countdown .pulse { width:6px; height:6px; border-radius:50%; background:#2d7d72; animation:pulse 1s ease-in-out infinite; flex-shrink:0; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
 
   .tom-toggle-btn {
@@ -283,8 +283,8 @@
   .tomorrow-pill:hover { background: rgba(255,255,255,.82); transform: translateY(-1px); }
   .tp-green { border-color: rgba(5,150,105,.35); }
   .tp-red   { border-color: rgba(220,38,38,.35); }
-  .tp-green .pill-val { color: #059669; }
-  .tp-red   .pill-val { color: #dc2626; }
+  .tp-green .pill-val { color: #2d7d72; }
+  .tp-red   .pill-val { color: #E05C63; }
   .pill-val   { font-size: 32px; font-weight: 700; line-height: 1; }
   .pill-label { font-size: 12px; opacity:.7; }
   .hint-text { font-size:11px; opacity:.35; text-align:center; margin-top:10px; }
@@ -332,7 +332,7 @@
   .badge-green  { background: rgba(5,150,105,.1);  color: var(--green); border: 1px solid rgba(5,150,105,.25); }
   .badge-amber  { background: rgba(217,119,6,.1);  color: var(--amber); border: 1px solid rgba(217,119,6,.25); }
   .badge-blue   { background: rgba(37,99,235,.1);  color: var(--blue); border: 1px solid rgba(37,99,235,.25); }
-  .badge-sent   { background: rgba(74,222,128,.18); color: #16a34a; border: 1px solid rgba(74,222,128,.45); }
+  .badge-sent   { background: rgba(74, 160, 222, 0.18); color: #165aa3; border: 1px solid rgba(74, 170, 222, 0.45); }
 
   /* SHORTAGE BAR */
   .shortage-bar { height:4px; background: rgba(248,113,113,.2); border-radius:3px; overflow:hidden; margin-top:3px; }
@@ -559,11 +559,11 @@
             <div class="card-subtitle">คลิกที่แท่งกราฟเพื่อดูรายละเอียด</div>
           </div>
           <div class="legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>พร้อมส่ง</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>ไม่พร้อมส่ง</div>
-            <div class="legend-item"><div class="legend-dot" style="background:rgba(248,113,113,0.75);border:1.5px solid #f87171"></div>ค้างส่ง</div>
-            <div class="legend-item"><div class="legend-dot" style="background:rgba(234,179,8,0.45);border:1.5px solid #eab308"></div>ส่งล่าช้า</div>
-            <div class="legend-item"><div class="legend-dot" style="background:rgba(74,222,128,0.55);border:1.5px solid #4ade80"></div>ส่งแล้ว</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#22A652"></div>พร้อมส่ง</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#E05C63"></div>ไม่พร้อมส่ง</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(208,129,141,0.75);border:1.5px solid #D0818D"></div>ค้างส่ง</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(231,181,49,0.55);border:1.5px solid #E7B531"></div>ส่งล่าช้า</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(78,134,222,0.6);border:1.5px solid #4E86DE"></div>ส่งแล้ว</div>
           </div>
         </div>
         <div class="card-body">
@@ -628,7 +628,7 @@
           </div>
           <div class="donut-stat-row">
             <div class="donut-stat-item">
-              <div class="donut-stat-val" id="yd-sent" style="color:#4ade80">—</div>
+              <div class="donut-stat-val" id="yd-sent" style="color:#4E86DE">—</div>
               <div class="donut-stat-lbl">📦 ส่งแล้ว</div>
             </div>
             <div class="donut-stat-item">
@@ -653,7 +653,7 @@
           </div>
           <div class="donut-stat-row">
             <div class="donut-stat-item">
-              <div class="donut-stat-val" id="td-sent" style="color:#4ade80">—</div>
+              <div class="donut-stat-val" id="td-sent" style="color:#4E86DE">—</div>
               <div class="donut-stat-lbl">📦 ส่งแล้ว</div>
             </div>
             <div class="donut-stat-item">
@@ -682,7 +682,7 @@
           </div>
           <div class="donut-stat-row">
             <div class="donut-stat-item">
-              <div class="donut-stat-val" id="tm-sent" style="color:#4ade80">—</div>
+              <div class="donut-stat-val" id="tm-sent" style="color:#4E86DE">—</div>
               <div class="donut-stat-lbl">📦 ส่งแล้ว</div>
             </div>
             <div class="donut-stat-item">
@@ -929,7 +929,7 @@ function initDonutYesterday(canvasId, dateKey, centerId) {
         data: total === 0 ? [1, 0] : [sent, ov],
         backgroundColor: total === 0
           ? ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']
-          : ['#4ade80', '#f87171'],
+          : ['#4E86DE', '#D0818D'],
         borderWidth: 0,
         hoverOffset: 4
       }]
@@ -969,8 +969,8 @@ function initDonutTodayTomorrow(canvasId, dateKey, centerId, sentId, readyId, no
       datasets: [{
         data: total === 0 ? [0, 1, 0] : [sent, r, n],
         backgroundColor: total === 0
-          ? ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']
-          : ['#4ade80', '#34d399', '#f87171'],
+              ? ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']
+              : ['#4E86DE', '#22A652', '#E05C63'],
         borderWidth: 0,
         hoverOffset: 4
       }]
@@ -1013,7 +1013,7 @@ function initBarChart() {
         const xPos = x.getPixelForValue(i);
         const yPos = y.getPixelForValue(stackTotal) - 6;
         ctx.font = 'bold 9.5px Kanit, sans-serif';
-        ctx.fillStyle = pct >= 80 ? '#059669' : pct >= 50 ? '#f59e0b' : '#ef4444';
+        ctx.fillStyle = pct >= 80 ? '#2d7d72' : pct >= 50 ? '#f59e0b' : '#b85c5c';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(pct + '%', xPos, yPos);
@@ -1029,11 +1029,11 @@ function initBarChart() {
     data: {
       labels,
       datasets: [
-        { label:'พร้อมส่ง',   data:allDates.map(d=>DATA[d]?.r||0), backgroundColor:allDates.map((d,i)=>i===todayIdx?'#059669':'#10b981'), borderRadius:4, borderSkipped:false },
-        { label:'ไม่พร้อมส่ง', data:allDates.map(d=>DATA[d]?.n||0), backgroundColor:allDates.map((d,i)=>i===todayIdx?'#dc2626':'#ef4444'), borderRadius:4, borderSkipped:false },
-        { label:'ค้างส่ง',    data:allDates.map(d=>DATA[d]?.ov||0), backgroundColor:'rgba(248,113,113,0.75)', borderColor:'#f87171', borderWidth:1.5, borderRadius:4, borderSkipped:false },
-        { label:'ส่งล่าช้า',   data:allDates.map(d=>DATA[d]?.l||0),  backgroundColor:'rgba(234,179,8,0.38)', borderColor:'rgba(234,179,8,0.75)', borderWidth:1.5, borderRadius:4, borderSkipped:false },
-        { label:'ส่งแล้ว',    data:allDates.map(d=>DATA[d]?.sent||0), backgroundColor:'rgba(74,222,128,0.55)', borderColor:'#4ade80', borderWidth:1.5, borderRadius:4, borderSkipped:false }
+          { label:'พร้อมส่ง',    data:allDates.map(d=>DATA[d]?.r||0),    backgroundColor:allDates.map((d,i)=>i===todayIdx?'#178a40':'#22A652'), borderRadius:4, borderSkipped:false },
+          { label:'ไม่พร้อมส่ง', data:allDates.map(d=>DATA[d]?.n||0),    backgroundColor:allDates.map((d,i)=>i===todayIdx?'#b83a40':'#E05C63'), borderRadius:4, borderSkipped:false },
+          { label:'ค้างส่ง',     data:allDates.map(d=>DATA[d]?.ov||0),   backgroundColor:'rgba(208,129,141,0.65)', borderColor:'#D0818D', borderWidth:1.5, borderRadius:4, borderSkipped:false },
+          { label:'ส่งล่าช้า',   data:allDates.map(d=>DATA[d]?.l||0),    backgroundColor:'rgba(231,181,49,0.45)',  borderColor:'#E7B531', borderWidth:1.5, borderRadius:4, borderSkipped:false },
+          { label:'ส่งแล้ว',     data:allDates.map(d=>DATA[d]?.sent||0), backgroundColor:'rgba(78,134,222,0.55)',  borderColor:'#4E86DE', borderWidth:1.5, borderRadius:4, borderSkipped:false }
       ]
     },
     options: {
@@ -1160,7 +1160,7 @@ function renderModalTable(tab) {
         extraCell = `<div style="font-weight:700;color:var(--green);font-size:12px">+${fmt(r.shipped)}</div>
                      <div style="font-size:10px;color:var(--amber)">ส่งเมื่อ ${thaiDate(r.shipDate)}</div>`;
       } else if (r._type === 'sent') {
-        extraCell = `<div style="font-weight:700;color:#4ade80;font-size:12px">${fmt(r.shipped)}</div>`;
+        extraCell = `<div style="font-weight:700;color:#4E86DE;font-size:12px">${fmt(r.shipped)}</div>`;
       }
 
       return `<tr>
@@ -1189,7 +1189,7 @@ function renderModalTable(tab) {
       <td class="inv-id">${r.inv||'—'}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.d}">${r.d}</td>
       <td style="font-weight:600">${fmt(r.due)}</td>
-      <td style="font-weight:700;color:#4ade80">${fmt(r.shipped)}</td>
+      <td style="font-weight:700;color:#4E86DE">${fmt(r.shipped)}</td>
       <td><span class="badge badge-sent">📦 ส่งแล้ว</span></td>
     </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีรายการ</td></tr>`;
     return;
