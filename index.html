@@ -1422,7 +1422,7 @@ function initBarChart() {
         const total = (day.r||0)+(day.n||0)+(day.sent||0);
         if (!total) return;
         const totalAll = (day.r||0)+(day.n||0)+(day.sent||0)+(day.ov||0)+(day.l||0);
-        const pct = totalAll ? Math.round(((day.r||0)+(day.sent||0))/totalAll*100) : 0;
+        const pct = totalAll ? Math.round(((day.r||0)+(day.sent||0)+(day.l||0))/totalAll*100) : 0;
         const stackTop = totalAll;
         const xPos  = x.getPixelForValue(i);
         const yPos  = y.getPixelForValue(stackTop)-5;
