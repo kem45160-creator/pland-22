@@ -1298,9 +1298,8 @@ function renderAll() {
   document.getElementById('stat-total').textContent    = tdTotal;
   document.getElementById('stat-ready').textContent    = td.sent||0;
   document.getElementById('stat-notready').textContent = td.n||0;
-  const pct = (td.sent||0)+(td.r||0)+(td.n||0)>0
-    ? Math.round(((td.sent||0)+(td.r||0))/((td.sent||0)+(td.r||0)+(td.n||0))*100)
-    : 100;
+  const totalAll = (td.r||0)+(td.n||0)+(td.sent||0)+(td.ov||0)+(td.l||0);
+  const pct = totalAll ? Math.round(((td.r||0)+(td.sent||0)+(td.l||0))/totalAll*100) : 0;
   document.getElementById('stat-pct').textContent = pct+'%';
 
   const tm = DATA[TOMORROW]||{r:0,n:0};
